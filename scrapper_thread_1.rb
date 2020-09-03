@@ -387,18 +387,18 @@ def get_listing_details( json )
 
 end
 
-	total_iterations =ARGV[0].to_i
-    iteration_count =ARGV[1].to_i 
+	total_iterations =ARGV[1].to_i
+    iteration_count =ARGV[2].to_i 
 
 	
-	input_data = $connection.query("select count(*) from us_zip_codes where state = 'CA'")
+	input_data = $connection.query("select count(*) from us_zip_codes where state = '#{ARGV[0]}'")
 	puts "Total count : #{total_records=input_data.first['count(*)'].to_i}" #total  row count
     offset = (iteration_count-1)*(total_records/total_iterations)
     puts "Iteration : #{iteration_count}"
     puts "Total Iteration : #{total_iterations}"
     puts "Offset for sql : #{offset}"
     puts "Limit for sql : #{limit = (total_iterations==iteration_count)?(total_records-offset):(total_records/total_iterations)}\n\n"
-    apartments = $connection.query("select * from us_zip_codes where state = 'CA' and not status = 'done' ORDER BY 1 limit #{limit} offset #{offset}")
+    apartments = $connection.query("select * from us_zip_codes where state = '#{ARGV[0]}' and status is null ORDER BY 1 limit #{limit} offset #{offset}")
 
 	puts "Scrapping started : #{Time.new}"
 
