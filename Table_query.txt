@@ -1,0 +1,7 @@
+
+
+CREATE TABLE rentals_thread_1 (listingId TEXT, rentalKey TEXT, image TEXT, title TEXT, address TEXT, combined_address TEXT, division TEXT, zip TEXT, latitude TEXT, longitude TEXT, beds TEXT, bath TEXT, rent TEXT, unit TEXT, area TEXT, specificType TEXT, URL TEXT);
+
+CREATE TABLE rentals_thread_2 (listingId TEXT, rentalKey TEXT, image TEXT, title TEXT, address TEXT, combined_address TEXT, division TEXT, zip TEXT, latitude TEXT, longitude TEXT, beds TEXT, bath TEXT, rent TEXT, unit TEXT, area TEXT, specificType TEXT, URL TEXT);
+
+CREATE TABLE us_zip_codes (zip_code TEXT, city TEXT, state TEXT, status TEXT NULL , details TEXT NULL);
