@@ -3,7 +3,7 @@ require 'date'
 require 'time'
 require 'mechanize'
 require 'mysql2'
-require 'byebug'
+# require 'byebug'
 require 'csv'
 
 # Write log immediately

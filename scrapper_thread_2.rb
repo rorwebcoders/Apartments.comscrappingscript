@@ -3,7 +3,7 @@ require 'date'
 require 'time'
 require 'mechanize'
 require 'mysql2'
-require 'byebug'
+# reqssuire 'byebug'
 require 'csv'
 
 # Write log immediately
@@ -404,7 +404,7 @@ end
 
 	json = {}
 	apartments.each do |each_data|
-		puts "----------------------------ZIP CODE #{each_data['zip_code']}"
+		puts "----------------------------ZIP CODE #{each_data['zip_code']}-----------------------"
 		@count_details = ''
 		['apartments','homes'].each do |type| # 
 		    json["zip"] = each_data['zip_code']
