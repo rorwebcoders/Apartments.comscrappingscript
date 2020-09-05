@@ -24,7 +24,7 @@ $connection = Mysql2::Client.new(:host => $props[:db_host], :username => $props[
 def get_request(url)
   agent = Mechanize.new
   agent.redirect_ok = true
-  # agent.set_proxy("p.webshare.io", 80, 'ssewadpd-rotate', 'ewpc7poi760o')
+  agent.set_proxy("p.webshare.io", 80, 'epnuqhfr-rotate', 'upzwzaf473e3')
   search_url = URI::encode(url)
   agent.user_agent_alias = "Windows Mozilla"
   res = agent.get(search_url)
@@ -34,7 +34,7 @@ end
 
 def post_request(url, header, data)
   agent = Mechanize.new
-  # agent.set_proxy("p.webshare.io", 80, 'ssewadpd-rotate', 'ewpc7poi760o')
+  agent.set_proxy("p.webshare.io", 80, 'epnuqhfr-rotate', 'upzwzaf473e3')
   agent.user_agent_alias = "Windows Mozilla"
   res = agent.post(url, data, header)
 
@@ -56,18 +56,10 @@ def get_details(argJson)
 
 	zip = begin address.split.last.strip rescue "" end
 
-	latitude = html.css("meta[@property = 'place:location:latitude']").attr('content').value
+	latitude = begin html.css("meta[@property = 'place:location:latitude']").attr('content').value rescue "" end
 
-	longitude = html.css("meta[@property = 'place:location:longitude']").attr('content').value
+	longitude = begin html.css("meta[@property = 'place:location:longitude']").attr('content').value rescue '' end
     	
-	# address = ( address.gsub(/[^0-9A-Za-z]/,"").downcase.start_with? data["title"].gsub(/[^0-9A-Za-z]/,"").downcase ) ? address] : combined_address #combined address
-
-	# if title.start_with?(/[0-9]/)
-	# 	final_address = combined_address
-	# else
-	# 	final_address = address
-	# end
-
 	if address.split(',').count > 2
 		comma_splitted_add = address
 	else
@@ -86,11 +78,11 @@ def get_details(argJson)
 				rent = begin each_data.css("td.rent").text.split('-').first.strip.split.join(' ') rescue "" end
 				# unit = begin each_data.css("td.unit").text.strip rescue "" end
 				area = begin each_data.css("td.sqft").text.split('-').first.downcase.gsub('sq ft', '').gsub('sf', '').strip rescue "" end
-				# byebug
+				
 				# $db.execute "insert into rentals values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [argJson["listingId"], argJson["image"], title, address, final_address, comma_splitted_add, division, zip, beds, baths, rent, unit, area, argJson["specificType"], argJson["url"]]
 				if rent != '' && !rent.nil?
 
-					$connection.query("INSERT INTO rentals_thread_1 (listingId, rentalKey, image, title, address, combined_address, division, zip, latitude, longitude, beds, bath, rent, unit, area, specificType, URL) VALUES('#{argJson["listingId"]}', '#{rental_key}', '#{argJson["image"]}','#{title}','#{address}','#{comma_splitted_add}','#{division}','#{zip}', '#{latitude}', '#{longitude}', '#{beds}','#{baths}','#{rent}','','#{area}','#{argJson["specificType"]}','#{argJson["url"]}')")
+					$connection.query("INSERT INTO rentals_thread_#{ARGV[2]} (listingId, rentalKey, image, title, address, combined_address, division, zip, latitude, longitude, beds, bath, rent, unit, area, specificType, URL) VALUES('#{argJson["listingId"]}', '#{rental_key}', '#{argJson["image"]}','#{title}','#{address}','#{comma_splitted_add}','#{division}','#{zip}', '#{latitude}', '#{longitude}', '#{beds}','#{baths}','#{rent}','','#{area}','#{argJson["specificType"]}','#{argJson["url"]}')")
 				end
 			rescue => subEx
 				puts "--- Exception in getting details #{subEx.message}"
@@ -116,13 +108,8 @@ def get_listing( listing_filter )
 	data = "{\"Map\":{\"Shape\":null},\"Geography\":{\"ID\":\"mfw6jhk\",\"Display\":\"#{listing_filter["zip"]}, #{listing_filter["city"]}, #{listing_filter["state"]}\",\"GeographyType\":3,\"Address\":{\"City\":\"#{listing_filter["city"]}\",\"PostalCode\":\"#{listing_filter["zip"]}\",\"State\":\"#{listing_filter["state"]}\"}},\"Listing\": #{listing_filter.reject{|k,v| ["page","type","priceSort","zip","city","state"].include? k }.to_json},\"Paging\":{\"Page\":\"#{listing_filter["page"]}\"},\"SortOption\":#{listing_filter["priceSort"]},\"Options\":1}"
 	header = {'Content-Type' => 'application/json'}
 
-	# puts "Data : #{data}"
-
-	# begin
-		response = post_request(url, header, data)
-	# rescue
-	# end
-
+	response = post_request(url, header, data)
+	
 	return response
 end
 
@@ -148,14 +135,12 @@ def get_pagination_request( listing_filter, check )
 			listingRespFlag = true
 			3.times do
 				begin
-					# byebug
 					response = get_listing( listing_filter )
 					json = JSON.parse(response.body)
 					break
 				rescue Exception => subEx
 					listingRespFlag = false
 					puts "\tException at #{listExcep} time trying in listing fetching : #{subEx.message}"   if !check
-					# puts "\tException in listing fetching : #{subEx.backtrace}"
 					listExcep = listExcep + 1
 				end
 			end
@@ -177,7 +162,6 @@ def get_pagination_request( listing_filter, check )
 				end
 
 
-				# filter required or not , check
 				if check
 					if ( listing.length > 0 and !listing.last.css(".searchResults").empty? and listing.last.css(".pageRange").text.split(" ").last == "28" )
 						filter_check = 1 # filter needed
@@ -190,24 +174,17 @@ def get_pagination_request( listing_filter, check )
 					break
 				end
 
-				# puts "Total Listing in this Search filter : #{json["PinsState"]["TotalUnitCount"]}"
 				puts "\nTotal listing in Page : #{page} is #{listing.count}"
 
 
 				lastPage = false
-							# byebug
-							puts listing.count
-
 				
 				listing.each_with_index do |each_list, index|
 
 					lastPage = true if ( !each_list.css(".searchResults").empty? and !each_list.css("#paging > ol > li").last.css("a[aria-label = 'Current Page']").empty? )
 					lastPage = true if ( index == listing.count - 1 and each_list.css(".searchResults").empty? )
 					$priceFilter = false if ( !each_list.css(".searchResults").empty? and each_list.css(".pageRange").text.split(" ").last == "28" )
-					# byebug
-					# puts "Price filter : #{$priceFilter}"
 					break if ( !each_list.css(".searchResults").empty? )
-
 
 					begin
 						listingId = each_list.css("article").attr("data-listingid").text.strip
@@ -218,12 +195,6 @@ def get_pagination_request( listing_filter, check )
 							puts "List : #{listingId}"
 							data = {}
 							data["listingId"] = begin listingId rescue "" end
-							# data["title"] = begin each_list.css("a.placardTitle").text.strip rescue "" end
-
-							# data["address"] = begin each_list.css(".location").text.strip rescue "" end
-							# data["address"] = ( data["address"].gsub(/[^0-9A-Za-z]/,"").downcase.start_with? data["title"].gsub(/[^0-9A-Za-z]/,"").downcase ) ? data["address"] : data["title"] + ", " + data["address"] #combined address
-
-
 							data["url"] = begin each_list.css("article").attr("data-url").text.strip rescue "" end
 							data["image"] = begin each_list.css("div.imageContainer > div.carouselInner > div").attr("style").text.match(/background-image: url\("(.*)?"\)\;/)[1] rescue "" end
 							if data["image"] == ""
@@ -241,9 +212,7 @@ def get_pagination_request( listing_filter, check )
 									get_details(data)
 									break
 								rescue Exception => subEx
-									# byebug
 									puts "\tException at #{propExcep} time in property block : #{subEx.message}"
-									# puts "\tException in property block : #{subEx.backtrace}"
 									propExcep = propExcep + 1
 								end
 							end
@@ -252,14 +221,9 @@ def get_pagination_request( listing_filter, check )
 						end
 
 					rescue Exception => ex
-						# byebug
 						puts "\tException in listing block : #{ex.message}"
-						# puts "\tException in listing block : #{ex.backtrace}"
 					end
-					# break
 				end
-	# byebug
-				
 			if lastPage
 					
 					$connection.query("update us_zip_codes set status = 'done', details = '#{@count_details.split(',').uniq.join(',')}' where zip_code = '#{listing_filter['zip']}'")
@@ -271,20 +235,15 @@ def get_pagination_request( listing_filter, check )
 			page = page + 1
 
 			if page > 28 or !listingRespFlag
-				# byebug
 				$connection.query("update us_zip_codes set status = 'done', details = '#{@count_details.split(',').uniq.join(',')}' where zip_code = '#{listing_filter['zip']}'")
-
 				break
 			end
 		end
 	rescue Exception => ex
-		# byebug
 		puts "\tException in listing block : #{ex.message}"
 		$connection.query("update us_zip_codes set status = 'Failure', details = 'Error' where zip_code = '#{listing_filter['zip']}'")
-		# puts "\tException in listing block : #{ex.backtrace}"
 	end
 
-	# returns value as per the filter check
 	return filter_check
 
 end
@@ -328,8 +287,7 @@ end
 
 
 def set_bed_filter( listing_filter )
-# byebug
-	check = get_pagination_request( listing_filter, true )
+    check = get_pagination_request( listing_filter, true )
 		
 	if ( check == 1 )
 		# Bed filter
@@ -358,7 +316,6 @@ def get_listing_details( json )
 	# if multiple options needed, just add the numbers and give in style
 	# style = 5 if type == 'apartments'
 	# style = 18 if type == 'homes'
-	# byebug	
 	$listingIds = []
 	listing_filter = {}
 	listing_filter["zip"] = json["zip"]
@@ -404,7 +361,7 @@ end
 
 	json = {}
 	apartments.each do |each_data|
-		puts "----------------------------ZIP CODE #{each_data['zip_code']}"
+		puts "\n\n----------------------------ZIP CODE #{each_data['zip_code']}--------------------------------------"
 		@count_details = ''
 		['apartments','homes'].each do |type| # 
 		    json["zip"] = each_data['zip_code']
